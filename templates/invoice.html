@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Invoice from {{company}}</title>
+</head>
+<body style="font-family:Arial,sans-serif;padding:40px;">
+  <h2>Invoice for {{name}}</h2>
+  <p><strong>Date:</strong> {{date}}</p>
+  <p><strong>Invoice ID:</strong> {{invoice_id}}</p>
+  <hr>
+  <table width="100%" style="border-collapse:collapse;">
+    <tr>
+      <th align="left">Item</th><th align="right">Amount</th>
+    </tr>
+    {% for item in items %}
+    <tr>
+      <td>{{item.name}}</td><td align="right">${{item.amount}}</td>
+    </tr>
+    {% endfor %}
+  </table>
+  <hr>
+  <p><strong>Total:</strong> ${{total}}</p>
+  <p>Thank you for your business!</p>
+</body>
+</html>

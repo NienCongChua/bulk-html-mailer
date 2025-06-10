@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>{{newsletter_title}}</title>
+</head>
+<body style="font-family:Georgia,serif; background:#f0f0f0; padding:40px;">
+  <div style="max-width:700px;background:white;padding:30px;margin:auto;">
+    <h1>{{newsletter_title}}</h1>
+    <p><em>Sent on {{date}}</em></p>
+    {% for article in articles %}
+      <h2>{{article.title}}</h2>
+      <p>{{article.summary}}</p>
+      <a href="{{article.url}}">Read more →</a>
+      <hr>
+    {% endfor %}
+    <p style="font-size:12px;color:#999;">You're receiving this email because you subscribed to our newsletter.</p>
+  </div>
+</body>
+</html>

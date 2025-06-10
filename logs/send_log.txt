@@ -1,0 +1,2 @@
+❌ Failed to john.doe@example.com: {'john.doe@example.com': (501, b'5.1.5 Recipient address reserved by RFC 2606')}
+❌ Failed to jane.smith@example.com: {'jane.smith@example.com': (501, b'5.1.5 Recipient address reserved by RFC 2606')}

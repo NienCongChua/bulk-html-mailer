@@ -9,7 +9,7 @@ smtp:
   # - Zoho: smtp.zoho.com
   # - SendGrid: smtp.sendgrid.net
   # - Mailgun: smtp.mailgun.org
-  host: smtp.gmail.com
+  host: smtp.office365.com
 
   # 👉 SMTP port:
   # - 587: TLS (phổ biến nhất, an toàn)
@@ -26,7 +26,7 @@ smtp:
   # - Gmail: dùng App Password nếu bật 2FA
   # - SendGrid: nhập API Key như mật khẩu
   # - Mailgun: mật khẩu SMTP
-  password: your_app_password_or_api_key
+  password: your_password
 
 # ========================
 # Sender Info
@@ -40,10 +40,10 @@ sender:
 # ========================
 email:
   # 📝 Tiêu đề email (có thể dùng {{name}}, {{discount_code}}, v.v.)
-  subject: "Hello {{name}}, check out our new product!"
+  subject: "Hello {{name}}, reset your password!"
 
   # 📄 Đường dẫn đến file HTML template
-  template_path: templates/default.html
+  template_path: templates/passwordReset.html
 
   # 📊 CSV chứa danh sách người nhận
   recipients_csv: data/recipients.csv
@@ -53,5 +53,5 @@ email:
 # ========================
 # 📎 Danh sách file cần đính kèm (có thể để trống nếu không cần)
 attachments:
-  - attachments/promo.pdf
-  - attachments/banner.jpg
+  # - attachments/promo.pdf
+  # - attachments/banner.jpg

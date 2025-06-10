@@ -23,19 +23,20 @@ def read_recipients(csv_path):
         return list(reader)
 
 def attach_files(msg, attachments):
-    for filepath in attachments:
-        try:
-            with open(filepath, "rb") as f:
-                part = MIMEBase("application", "octet-stream")
-                part.set_payload(f.read())
-                encoders.encode_base64(part)
-                part.add_header(
-                    "Content-Disposition",
-                    f"attachment; filename={Path(filepath).name}",
-                )
-                msg.attach(part)
-        except Exception as e:
-            print(f"⚠️ Could not attach {filepath}: {e}")
+    if attachments:
+        for filepath in attachments:
+            try:
+                with open(filepath, "rb") as f:
+                    part = MIMEBase("application", "octet-stream")
+                    part.set_payload(f.read())
+                    encoders.encode_base64(part)
+                    part.add_header(
+                        "Content-Disposition",
+                        f"attachment; filename={Path(filepath).name}",
+                    )
+                    msg.attach(part)
+            except Exception as e:
+                print(f"⚠️ Could not attach {filepath}: {e}")
 
 def send_email(smtp_config, sender_info, recipient, subject_template, html_template, attachments):
     subject = Template(subject_template).render(**recipient)

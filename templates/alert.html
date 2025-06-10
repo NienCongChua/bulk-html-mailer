@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>New Sign-In Alert</title>
+</head>
+<body style="font-family:Arial,sans-serif;background:#f7f7f7;padding:30px;">
+  <div style="max-width:600px;background:white;padding:30px;margin:auto;border-radius:6px;">
+    <h2>New login detected</h2>
+    <p>Hi {{name}},</p>
+    <p>We noticed a new login to your account:</p>
+    <ul>
+      <li><strong>IP:</strong> {{ip}}</li>
+      <li><strong>Location:</strong> {{location}}</li>
+      <li><strong>Device:</strong> {{device}}</li>
+      <li><strong>Time:</strong> {{time}}</li>
+    </ul>
+    <p>If this wasn’t you, please <a href="{{security_url}}">secure your account</a> immediately.</p>
+    <p>— The Security Team</p>
+  </div>
+</body>
+</html>
