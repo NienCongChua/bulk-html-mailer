@@ -1,0 +1,299 @@
+{% extends "base.html" %}
+
+{% block title %}Cấu hình - Bulk HTML Mailer{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h1 class="mb-4">
+            <i class="fas fa-cog me-2"></i>
+            Cấu hình hệ thống
+        </h1>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-server me-2"></i>
+                    Cấu hình SMTP
+                </h5>
+            </div>
+            <div class="card-body">
+                <form id="configForm">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="smtpHost" class="form-label">SMTP Host</label>
+                            <input type="text" class="form-control" id="smtpHost" 
+                                   value="{{ config.smtp.host if config.smtp else '' }}"
+                                   placeholder="smtp.gmail.com">
+                            <div class="form-text">Ví dụ: smtp.gmail.com, smtp.office365.com</div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="smtpPort" class="form-label">SMTP Port</label>
+                            <input type="number" class="form-control" id="smtpPort" 
+                                   value="{{ config.smtp.port if config.smtp else '587' }}">
+                            <div class="form-text">587 (TLS) hoặc 465 (SSL)</div>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="smtpUsername" class="form-label">Username</label>
+                            <input type="text" class="form-control" id="smtpUsername" 
+                                   value="{{ config.smtp.username if config.smtp else '' }}"
+                                   placeholder="your_email@gmail.com">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="smtpPassword" class="form-label">Password</label>
+                            <input type="password" class="form-control" id="smtpPassword" 
+                                   value="{{ config.smtp.password if config.smtp else '' }}"
+                                   placeholder="App Password hoặc mật khẩu">
+                            <div class="form-text">Sử dụng App Password nếu bật 2FA</div>
+                        </div>
+                    </div>
+                    
+                    <hr>
+                    
+                    <h6>Thông tin người gửi</h6>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="senderName" class="form-label">Tên người gửi</label>
+                            <input type="text" class="form-control" id="senderName" 
+                                   value="{{ config.sender.name if config.sender else '' }}"
+                                   placeholder="Your Name">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="senderEmail" class="form-label">Email người gửi</label>
+                            <input type="email" class="form-control" id="senderEmail" 
+                                   value="{{ config.sender.email if config.sender else '' }}"
+                                   placeholder="your_email@gmail.com">
+                        </div>
+                    </div>
+                    
+                    <hr>
+                    
+                    <h6>Cấu hình Email</h6>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="defaultSubject" class="form-label">Subject mặc định</label>
+                            <input type="text" class="form-control" id="defaultSubject" 
+                                   value="{{ config.email.subject if config.email else '' }}"
+                                   placeholder="Hello {{name}}!">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="defaultTemplate" class="form-label">Template mặc định</label>
+                            <select class="form-select" id="defaultTemplate">
+                                <option value="">Chọn template...</option>
+                                <option value="templates/default.html" 
+                                        {% if config.email and config.email.template_path == 'templates/default.html' %}selected{% endif %}>
+                                    default.html
+                                </option>
+                                <option value="templates/welcome.html"
+                                        {% if config.email and config.email.template_path == 'templates/welcome.html' %}selected{% endif %}>
+                                    welcome.html
+                                </option>
+                                <option value="templates/newsletter.html"
+                                        {% if config.email and config.email.template_path == 'templates/newsletter.html' %}selected{% endif %}>
+                                    newsletter.html
+                                </option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="recipientsCSV" class="form-label">File CSV người nhận</label>
+                        <input type="text" class="form-control" id="recipientsCSV" 
+                               value="{{ config.email.recipients_csv if config.email else 'data/recipients.csv' }}"
+                               placeholder="data/recipients.csv">
+                    </div>
+                    
+                    <div class="d-flex gap-2">
+                        <button type="button" class="btn btn-primary" onclick="saveConfig()">
+                            <i class="fas fa-save me-1"></i>
+                            Lưu cấu hình
+                        </button>
+                        <button type="button" class="btn btn-warning" onclick="testConnection()">
+                            <i class="fas fa-vial me-1"></i>
+                            Test kết nối
+                        </button>
+                        <button type="button" class="btn btn-info" onclick="loadDefaults()">
+                            <i class="fas fa-undo me-1"></i>
+                            Khôi phục mặc định
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-info-circle me-2"></i>
+                    Hướng dẫn cấu hình
+                </h5>
+            </div>
+            <div class="card-body">
+                <h6>Gmail:</h6>
+                <ul class="small">
+                    <li>Host: smtp.gmail.com</li>
+                    <li>Port: 587</li>
+                    <li>Bật 2FA và tạo App Password</li>
+                </ul>
+                
+                <h6>Outlook/Hotmail:</h6>
+                <ul class="small">
+                    <li>Host: smtp.office365.com</li>
+                    <li>Port: 587</li>
+                    <li>Sử dụng mật khẩu thường</li>
+                </ul>
+                
+                <h6>Yahoo:</h6>
+                <ul class="small">
+                    <li>Host: smtp.mail.yahoo.com</li>
+                    <li>Port: 587</li>
+                    <li>Bật "Less secure app access"</li>
+                </ul>
+                
+                <hr>
+                
+                <h6>Variables có thể dùng:</h6>
+                <ul class="small">
+                    <li><code>{{name}}</code> - Tên người nhận</li>
+                    <li><code>{{email}}</code> - Email người nhận</li>
+                    <li><code>{{product_name}}</code> - Tên sản phẩm</li>
+                    <li><code>{{discount_code}}</code> - Mã giảm giá</li>
+                </ul>
+            </div>
+        </div>
+        
+        <div class="card mt-3">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-shield-alt me-2"></i>
+                    Bảo mật
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="alert alert-warning">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    <strong>Lưu ý:</strong> Mật khẩu được lưu dưới dạng plain text trong file config.yaml. 
+                    Hãy đảm bảo file này được bảo mật.
+                </div>
+                
+                <div class="alert alert-info">
+                    <i class="fas fa-lightbulb me-2"></i>
+                    <strong>Khuyến nghị:</strong> Sử dụng App Password thay vì mật khẩu chính 
+                    cho Gmail và các dịch vụ hỗ trợ.
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+function saveConfig() {
+    const config = {
+        smtp: {
+            host: document.getElementById('smtpHost').value,
+            port: parseInt(document.getElementById('smtpPort').value),
+            username: document.getElementById('smtpUsername').value,
+            password: document.getElementById('smtpPassword').value
+        },
+        sender: {
+            name: document.getElementById('senderName').value,
+            email: document.getElementById('senderEmail').value
+        },
+        email: {
+            subject: document.getElementById('defaultSubject').value,
+            template_path: document.getElementById('defaultTemplate').value,
+            recipients_csv: document.getElementById('recipientsCSV').value
+        }
+    };
+    
+    fetch('/api/save-config', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(config)
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showAlert('success', 'Cấu hình đã được lưu thành công!');
+        } else {
+            showAlert('danger', data.message);
+        }
+    })
+    .catch(error => {
+        showAlert('danger', 'Lỗi lưu cấu hình: ' + error.message);
+    });
+}
+
+function testConnection() {
+    const btn = event.target;
+    const originalText = btn.innerHTML;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Đang test...';
+    btn.disabled = true;
+    
+    fetch('/test-smtp', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showAlert('success', data.message);
+        } else {
+            showAlert('danger', data.message);
+        }
+    })
+    .catch(error => {
+        showAlert('danger', 'Lỗi kết nối: ' + error.message);
+    })
+    .finally(() => {
+        btn.innerHTML = originalText;
+        btn.disabled = false;
+    });
+}
+
+function loadDefaults() {
+    if (confirm('Bạn có chắc muốn khôi phục cấu hình mặc định?')) {
+        document.getElementById('smtpHost').value = 'smtp.gmail.com';
+        document.getElementById('smtpPort').value = '587';
+        document.getElementById('smtpUsername').value = '';
+        document.getElementById('smtpPassword').value = '';
+        document.getElementById('senderName').value = 'Your Name';
+        document.getElementById('senderEmail').value = '';
+        document.getElementById('defaultSubject').value = 'Hello {{name}}!';
+        document.getElementById('defaultTemplate').value = 'templates/default.html';
+        document.getElementById('recipientsCSV').value = 'data/recipients.csv';
+    }
+}
+
+function showAlert(type, message) {
+    const alertDiv = document.createElement('div');
+    alertDiv.className = `alert alert-${type} alert-dismissible fade show`;
+    alertDiv.innerHTML = `
+        ${message}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    `;
+    
+    const container = document.querySelector('.container');
+    container.insertBefore(alertDiv, container.firstChild);
+    
+    setTimeout(() => {
+        alertDiv.remove();
+    }, 5000);
+}
+</script>
+{% endblock %}

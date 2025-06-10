@@ -1,0 +1,220 @@
+{% extends "base.html" %}
+
+{% block title %}Preview - {{ template_name }}{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h1 class="mb-4">
+            <i class="fas fa-eye me-2"></i>
+            Preview Template: {{ template_name }}
+        </h1>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">
+                    <i class="fas fa-desktop me-2"></i>
+                    Email Preview
+                </h5>
+                <div>
+                    <button class="btn btn-sm btn-outline-primary" onclick="toggleView('desktop')">
+                        <i class="fas fa-desktop"></i> Desktop
+                    </button>
+                    <button class="btn btn-sm btn-outline-primary" onclick="toggleView('mobile')">
+                        <i class="fas fa-mobile-alt"></i> Mobile
+                    </button>
+                </div>
+            </div>
+            <div class="card-body p-0">
+                <div id="preview-container" class="preview-desktop">
+                    <div id="rendered-content" style="border: 1px solid #ddd; background: white; min-height: 500px;">
+                        {{ rendered_html|safe }}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-info-circle me-2"></i>
+                    Thông tin Template
+                </h5>
+            </div>
+            <div class="card-body">
+                <table class="table table-sm">
+                    <tr>
+                        <td><strong>Tên file:</strong></td>
+                        <td>{{ template_name }}</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Kích thước:</strong></td>
+                        <td>{{ rendered_html|length }} ký tự</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Responsive:</strong></td>
+                        <td>
+                            {% if 'viewport' in rendered_html %}
+                                <span class="badge bg-success">Có</span>
+                            {% else %}
+                                <span class="badge bg-warning">Không</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                </table>
+                
+                <hr>
+                
+                <h6>Sample Data được sử dụng:</h6>
+                <div class="bg-light p-2 rounded">
+                    <small>
+                        {% for key, value in sample_data.items() %}
+                            <strong>{{ key }}:</strong> {{ value }}<br>
+                        {% endfor %}
+                    </small>
+                </div>
+                
+                <hr>
+                
+                <div class="d-grid gap-2">
+                    <a href="{{ url_for('templates') }}" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left me-1"></i>
+                        Quay lại Templates
+                    </a>
+                    <button class="btn btn-primary" onclick="editTemplate()">
+                        <i class="fas fa-edit me-1"></i>
+                        Chỉnh sửa Template
+                    </button>
+                    <button class="btn btn-success" onclick="useTemplate()">
+                        <i class="fas fa-paper-plane me-1"></i>
+                        Sử dụng Template này
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card mt-3">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-code me-2"></i>
+                    HTML Source
+                </h5>
+            </div>
+            <div class="card-body">
+                <div style="max-height: 300px; overflow-y: auto;">
+                    <pre><code style="font-size: 0.8em;">{{ rendered_html|e }}</code></pre>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_head %}
+<style>
+.preview-desktop {
+    width: 100%;
+    transition: all 0.3s ease;
+}
+
+.preview-mobile {
+    width: 375px;
+    margin: 0 auto;
+    transition: all 0.3s ease;
+}
+
+.preview-mobile #rendered-content {
+    border-radius: 20px;
+    overflow: hidden;
+}
+
+#rendered-content {
+    transition: all 0.3s ease;
+}
+
+.btn-outline-primary.active {
+    background-color: var(--bs-primary);
+    color: white;
+}
+</style>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+let currentView = 'desktop';
+
+function toggleView(view) {
+    const container = document.getElementById('preview-container');
+    const buttons = document.querySelectorAll('.btn-outline-primary');
+    
+    // Remove active class from all buttons
+    buttons.forEach(btn => btn.classList.remove('active'));
+    
+    // Add active class to clicked button
+    event.target.classList.add('active');
+    
+    if (view === 'mobile') {
+        container.className = 'preview-mobile';
+        currentView = 'mobile';
+    } else {
+        container.className = 'preview-desktop';
+        currentView = 'desktop';
+    }
+}
+
+function editTemplate() {
+    // Redirect to templates page with edit mode
+    window.location.href = '{{ url_for("templates") }}#edit-{{ template_name }}';
+}
+
+function useTemplate() {
+    // Redirect to send page with this template selected
+    const templateName = '{{ template_name }}';
+    window.location.href = `{{ url_for("send_emails") }}?template=${encodeURIComponent(templateName)}`;
+}
+
+// Initialize desktop view as active
+document.addEventListener('DOMContentLoaded', function() {
+    const desktopBtn = document.querySelector('.btn-outline-primary');
+    if (desktopBtn) {
+        desktopBtn.classList.add('active');
+    }
+});
+
+// Add some responsive testing
+function checkResponsive() {
+    const content = document.getElementById('rendered-content');
+    const hasViewport = content.innerHTML.includes('viewport');
+    const hasMediaQueries = content.innerHTML.includes('@media');
+    
+    if (!hasViewport && !hasMediaQueries) {
+        showAlert('warning', 'Template này có thể không responsive. Hãy thêm viewport meta tag và CSS media queries.');
+    }
+}
+
+function showAlert(type, message) {
+    const alertDiv = document.createElement('div');
+    alertDiv.className = `alert alert-${type} alert-dismissible fade show`;
+    alertDiv.innerHTML = `
+        ${message}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    `;
+    
+    const container = document.querySelector('.container');
+    container.insertBefore(alertDiv, container.firstChild);
+    
+    setTimeout(() => {
+        alertDiv.remove();
+    }, 5000);
+}
+
+// Check responsive on load
+setTimeout(checkResponsive, 1000);
+</script>
+{% endblock %}

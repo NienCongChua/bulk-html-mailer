@@ -1,0 +1,351 @@
+{% extends "base.html" %}
+
+{% block title %}Người nhận - Bulk HTML Mailer{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h1 class="mb-4">
+            <i class="fas fa-users me-2"></i>
+            Quản lý Người nhận
+        </h1>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">
+                    <i class="fas fa-table me-2"></i>
+                    Danh sách người nhận ({{ recipients|length }} người)
+                </h5>
+                <div>
+                    <button class="btn btn-primary btn-sm" onclick="addRecipient()">
+                        <i class="fas fa-plus me-1"></i>
+                        Thêm người nhận
+                    </button>
+                    <button class="btn btn-success btn-sm" onclick="importCSV()">
+                        <i class="fas fa-upload me-1"></i>
+                        Import CSV
+                    </button>
+                </div>
+            </div>
+            <div class="card-body">
+                {% if recipients %}
+                    <div class="table-responsive">
+                        <table class="table table-striped table-hover">
+                            <thead>
+                                <tr>
+                                    {% for header in headers %}
+                                    <th>{{ header.title() }}</th>
+                                    {% endfor %}
+                                    <th>Thao tác</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for recipient in recipients %}
+                                <tr>
+                                    {% for header in headers %}
+                                    <td>{{ recipient.get(header, '') }}</td>
+                                    {% endfor %}
+                                    <td>
+                                        <button class="btn btn-sm btn-outline-primary" 
+                                                onclick="editRecipient({{ loop.index0 }})">
+                                            <i class="fas fa-edit"></i>
+                                        </button>
+                                        <button class="btn btn-sm btn-outline-danger" 
+                                                onclick="deleteRecipient({{ loop.index0 }})">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="alert alert-info text-center">
+                        <i class="fas fa-info-circle me-2"></i>
+                        Chưa có người nhận nào. Hãy thêm người nhận đầu tiên!
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-info-circle me-2"></i>
+                    Thông tin CSV
+                </h5>
+            </div>
+            <div class="card-body">
+                <p><strong>File CSV hiện tại:</strong></p>
+                <code>{{ csv_path }}</code>
+                
+                <hr>
+                
+                <p><strong>Cấu trúc CSV mẫu:</strong></p>
+                <pre class="bg-light p-2 rounded"><code>email,name,product_name,discount_code
+john@example.com,John Doe,Product A,SAVE10
+jane@example.com,Jane Smith,Product B,SAVE20</code></pre>
+                
+                <hr>
+                
+                <p><strong>Các trường có sẵn:</strong></p>
+                <ul class="list-unstyled">
+                    {% for header in headers %}
+                    <li><i class="fas fa-check text-success me-1"></i>{{ header }}</li>
+                    {% endfor %}
+                </ul>
+                
+                <div class="d-grid gap-2 mt-3">
+                    <button class="btn btn-outline-primary" onclick="downloadTemplate()">
+                        <i class="fas fa-download me-1"></i>
+                        Tải template CSV
+                    </button>
+                    <button class="btn btn-outline-info" onclick="exportCSV()">
+                        <i class="fas fa-file-export me-1"></i>
+                        Xuất CSV
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add/Edit Recipient Modal -->
+<div class="modal fade" id="recipientModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-user-plus me-2"></i>
+                    <span id="modalTitle">Thêm người nhận</span>
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="recipientForm">
+                    <div class="mb-3">
+                        <label for="recipientEmail" class="form-label">Email *</label>
+                        <input type="email" class="form-control" id="recipientEmail" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="recipientName" class="form-label">Tên *</label>
+                        <input type="text" class="form-control" id="recipientName" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="recipientProduct" class="form-label">Sản phẩm</label>
+                        <input type="text" class="form-control" id="recipientProduct">
+                    </div>
+                    <div class="mb-3">
+                        <label for="recipientDiscount" class="form-label">Mã giảm giá</label>
+                        <input type="text" class="form-control" id="recipientDiscount">
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                <button type="button" class="btn btn-primary" onclick="saveRecipient()">
+                    <i class="fas fa-save me-1"></i>
+                    Lưu
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Import CSV Modal -->
+<div class="modal fade" id="importModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-upload me-2"></i>
+                    Import CSV
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label for="csvFile" class="form-label">Chọn file CSV</label>
+                    <input type="file" class="form-control" id="csvFile" accept=".csv">
+                </div>
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle me-2"></i>
+                    File CSV phải có header và các cột: email, name (bắt buộc). Các cột khác tùy chọn.
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                <button type="button" class="btn btn-primary" onclick="uploadCSV()">
+                    <i class="fas fa-upload me-1"></i>
+                    Upload
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+let currentRecipientIndex = -1;
+let recipients = {{ recipients|tojson }};
+
+function addRecipient() {
+    currentRecipientIndex = -1;
+    document.getElementById('modalTitle').textContent = 'Thêm người nhận';
+    document.getElementById('recipientForm').reset();
+    
+    const modal = new bootstrap.Modal(document.getElementById('recipientModal'));
+    modal.show();
+}
+
+function editRecipient(index) {
+    currentRecipientIndex = index;
+    const recipient = recipients[index];
+    
+    document.getElementById('modalTitle').textContent = 'Chỉnh sửa người nhận';
+    document.getElementById('recipientEmail').value = recipient.email || '';
+    document.getElementById('recipientName').value = recipient.name || '';
+    document.getElementById('recipientProduct').value = recipient.product_name || '';
+    document.getElementById('recipientDiscount').value = recipient.discount_code || '';
+    
+    const modal = new bootstrap.Modal(document.getElementById('recipientModal'));
+    modal.show();
+}
+
+function deleteRecipient(index) {
+    if (confirm('Bạn có chắc muốn xóa người nhận này?')) {
+        recipients.splice(index, 1);
+        saveRecipientsToServer();
+    }
+}
+
+function saveRecipient() {
+    const email = document.getElementById('recipientEmail').value;
+    const name = document.getElementById('recipientName').value;
+    const product = document.getElementById('recipientProduct').value;
+    const discount = document.getElementById('recipientDiscount').value;
+    
+    if (!email || !name) {
+        showAlert('warning', 'Email và tên là bắt buộc');
+        return;
+    }
+    
+    const recipientData = {
+        email: email,
+        name: name,
+        product_name: product,
+        discount_code: discount
+    };
+    
+    if (currentRecipientIndex >= 0) {
+        recipients[currentRecipientIndex] = recipientData;
+    } else {
+        recipients.push(recipientData);
+    }
+    
+    saveRecipientsToServer();
+    
+    const modal = bootstrap.Modal.getInstance(document.getElementById('recipientModal'));
+    modal.hide();
+}
+
+function saveRecipientsToServer() {
+    fetch('/api/save-recipients', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({recipients: recipients})
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showAlert('success', 'Đã lưu thành công!');
+            setTimeout(() => location.reload(), 1000);
+        } else {
+            showAlert('danger', data.message);
+        }
+    })
+    .catch(error => {
+        showAlert('danger', 'Lỗi lưu dữ liệu: ' + error.message);
+    });
+}
+
+function importCSV() {
+    const modal = new bootstrap.Modal(document.getElementById('importModal'));
+    modal.show();
+}
+
+function uploadCSV() {
+    const fileInput = document.getElementById('csvFile');
+    const file = fileInput.files[0];
+    
+    if (!file) {
+        showAlert('warning', 'Vui lòng chọn file CSV');
+        return;
+    }
+    
+    const formData = new FormData();
+    formData.append('csv_file', file);
+    
+    fetch('/api/import-csv', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showAlert('success', 'Import thành công!');
+            setTimeout(() => location.reload(), 1000);
+        } else {
+            showAlert('danger', data.message);
+        }
+    })
+    .catch(error => {
+        showAlert('danger', 'Lỗi upload file: ' + error.message);
+    });
+    
+    const modal = bootstrap.Modal.getInstance(document.getElementById('importModal'));
+    modal.hide();
+}
+
+function downloadTemplate() {
+    const csvContent = "email,name,product_name,discount_code\nexample@email.com,John Doe,Sample Product,SAVE10";
+    const blob = new Blob([csvContent], { type: 'text/csv' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'recipients_template.csv';
+    a.click();
+    window.URL.revokeObjectURL(url);
+}
+
+function exportCSV() {
+    window.location.href = '/api/export-csv';
+}
+
+function showAlert(type, message) {
+    const alertDiv = document.createElement('div');
+    alertDiv.className = `alert alert-${type} alert-dismissible fade show`;
+    alertDiv.innerHTML = `
+        ${message}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    `;
+    
+    const container = document.querySelector('.container');
+    container.insertBefore(alertDiv, container.firstChild);
+    
+    setTimeout(() => {
+        alertDiv.remove();
+    }, 5000);
+}
+</script>
+{% endblock %}

@@ -1,0 +1,238 @@
+{% extends "base.html" %}
+
+{% block title %}Templates - Bulk HTML Mailer{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h1 class="mb-4">
+            <i class="fas fa-file-code me-2"></i>
+            Quản lý Templates
+        </h1>
+    </div>
+</div>
+
+<div class="row">
+    {% for template in templates %}
+    <div class="col-md-6 col-lg-4 mb-4">
+        <div class="card h-100">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h6 class="mb-0">{{ template.name }}</h6>
+                <span class="badge bg-secondary">{{ template.size }} chars</span>
+            </div>
+            <div class="card-body">
+                <div class="template-preview mb-3" style="max-height: 150px; overflow-y: auto; background: #f8f9fa; padding: 10px; border-radius: 4px;">
+                    <code style="font-size: 0.8em;">{{ template.preview }}</code>
+                </div>
+                
+                <div class="d-grid gap-2">
+                    <a href="{{ url_for('preview_template', template_name=template.name) }}" 
+                       class="btn btn-primary btn-sm">
+                        <i class="fas fa-eye me-1"></i>
+                        Preview
+                    </a>
+                    <button class="btn btn-info btn-sm" onclick="editTemplate('{{ template.name }}')">
+                        <i class="fas fa-edit me-1"></i>
+                        Chỉnh sửa
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+    
+    {% if not templates %}
+    <div class="col-12">
+        <div class="alert alert-info text-center">
+            <i class="fas fa-info-circle me-2"></i>
+            Không có template nào. Hãy tạo template đầu tiên!
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Template Editor Modal -->
+<div class="modal fade" id="templateEditorModal" tabindex="-1">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-edit me-2"></i>
+                    Chỉnh sửa Template
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6>HTML Code:</h6>
+                        <textarea id="templateCode" class="form-control" rows="20" style="font-family: monospace;"></textarea>
+                    </div>
+                    <div class="col-md-6">
+                        <h6>Preview:</h6>
+                        <div id="templatePreview" style="border: 1px solid #ddd; padding: 15px; height: 500px; overflow-y: auto; background: white;"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+                <button type="button" class="btn btn-primary" onclick="saveTemplate()">
+                    <i class="fas fa-save me-1"></i>
+                    Lưu Template
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Create New Template Button -->
+<div class="fixed-bottom-right">
+    <button class="btn btn-success btn-lg rounded-circle" onclick="createNewTemplate()" style="position: fixed; bottom: 30px; right: 30px; width: 60px; height: 60px;">
+        <i class="fas fa-plus"></i>
+    </button>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+let currentTemplate = '';
+
+function editTemplate(templateName) {
+    currentTemplate = templateName;
+    
+    // Load template content
+    fetch(`/api/template/${templateName}`)
+        .then(response => response.text())
+        .then(content => {
+            document.getElementById('templateCode').value = content;
+            updatePreview();
+            
+            const modal = new bootstrap.Modal(document.getElementById('templateEditorModal'));
+            modal.show();
+        })
+        .catch(error => {
+            showAlert('danger', 'Lỗi tải template: ' + error.message);
+        });
+}
+
+function createNewTemplate() {
+    const templateName = prompt('Tên template mới:');
+    if (templateName) {
+        currentTemplate = templateName;
+        document.getElementById('templateCode').value = `<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>{{ subject }}</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 0; padding: 20px; background: #f4f4f4; }
+        .container { max-width: 600px; margin: 0 auto; background: white; padding: 30px; border-radius: 8px; }
+        .header { text-align: center; margin-bottom: 30px; }
+        .content { line-height: 1.6; }
+        .footer { margin-top: 30px; text-align: center; color: #666; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>{{ title }}</h1>
+        </div>
+        <div class="content">
+            <p>Xin chào {{ name }},</p>
+            <p>Nội dung email của bạn ở đây...</p>
+        </div>
+        <div class="footer">
+            <p>Trân trọng,<br>{{ company_name }}</p>
+        </div>
+    </div>
+</body>
+</html>`;
+        updatePreview();
+        
+        const modal = new bootstrap.Modal(document.getElementById('templateEditorModal'));
+        modal.show();
+    }
+}
+
+function updatePreview() {
+    const code = document.getElementById('templateCode').value;
+    
+    // Sample data for preview
+    const sampleData = {
+        name: 'John Doe',
+        title: 'Sample Title',
+        subject: 'Sample Subject',
+        company_name: 'Your Company',
+        product_name: 'Sample Product',
+        discount_code: 'PREVIEW20'
+    };
+    
+    // Simple template rendering (replace {{ variable }} with sample data)
+    let preview = code;
+    for (const [key, value] of Object.entries(sampleData)) {
+        const regex = new RegExp(`{{\\s*${key}\\s*}}`, 'g');
+        preview = preview.replace(regex, value);
+    }
+    
+    document.getElementById('templatePreview').innerHTML = preview;
+}
+
+function saveTemplate() {
+    const content = document.getElementById('templateCode').value;
+    
+    if (!currentTemplate) {
+        showAlert('danger', 'Tên template không hợp lệ');
+        return;
+    }
+    
+    fetch('/api/save-template', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            name: currentTemplate,
+            content: content
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showAlert('success', 'Template đã được lưu thành công!');
+            setTimeout(() => {
+                location.reload();
+            }, 1000);
+        } else {
+            showAlert('danger', data.message);
+        }
+    })
+    .catch(error => {
+        showAlert('danger', 'Lỗi lưu template: ' + error.message);
+    });
+}
+
+// Auto-update preview when typing
+document.addEventListener('DOMContentLoaded', function() {
+    const templateCode = document.getElementById('templateCode');
+    if (templateCode) {
+        templateCode.addEventListener('input', updatePreview);
+    }
+});
+
+function showAlert(type, message) {
+    const alertDiv = document.createElement('div');
+    alertDiv.className = `alert alert-${type} alert-dismissible fade show`;
+    alertDiv.innerHTML = `
+        ${message}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    `;
+    
+    const container = document.querySelector('.container');
+    container.insertBefore(alertDiv, container.firstChild);
+    
+    setTimeout(() => {
+        alertDiv.remove();
+    }, 5000);
+}
+</script>
+{% endblock %}
