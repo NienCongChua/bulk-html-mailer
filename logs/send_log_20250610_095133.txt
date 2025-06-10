@@ -1,0 +1,11 @@
+Email Campaign Started: 2025-06-10 09:51:33.439076
+Template: marketing.html
+Subject: hhrr
+Recipients: 3
+--------------------------------------------------
+❌ Failed to john.doe@example.com: {'john.doe@example.com': (501, b'5.1.5 Recipient address reserved by RFC 2606')}
+❌ Failed to jane.smith@example.com: {'jane.smith@example.com': (501, b'5.1.5 Recipient address reserved by RFC 2606')}
+✅ Sent to admin
+--------------------------------------------------
+Campaign Completed: 2025-06-10 09:51:36.908777
+Success: 1, Failures: 2

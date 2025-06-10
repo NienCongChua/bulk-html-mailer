@@ -9,6 +9,7 @@ from mailer import load_config, load_template, read_recipients, send_email
 import smtplib
 import ssl
 from jinja2 import Template
+from glob import glob
 
 app = Flask(__name__, template_folder='web_templates')
 app.secret_key = 'your-secret-key-change-this'
@@ -25,11 +26,12 @@ def index():
     try:
         config = load_config()
         
-        # Đọc logs gần đây
-        log_file = Path("logs/send_log.txt")
+        # Đọc logs gần đây từ file log mới nhất (theo thời gian chỉnh sửa)
+        log_files = glob("logs/send_log_*.txt")
+        log_files = sorted(log_files, key=os.path.getmtime, reverse=True)
         recent_logs = []
-        if log_file.exists():
-            with open(log_file, 'r', encoding='utf-8') as f:
+        if log_files:
+            with open(log_files[0], 'r', encoding='utf-8') as f:
                 recent_logs = f.readlines()[-10:]  # 10 dòng cuối
         
         # Đếm templates có sẵn
@@ -416,6 +418,25 @@ def save_config_api():
         return jsonify({'success': True, 'message': 'Cấu hình đã được lưu thành công!'})
     except Exception as e:
         return jsonify({'success': False, 'message': f'Lỗi lưu cấu hình: {str(e)}'})
+
+@app.route('/download-log')
+def download_log():
+    """Download the latest log file"""
+    try:
+        log_file = Path("logs/send_log.txt")
+        if not log_file.exists():
+            flash('Không tìm thấy file log', 'error')
+            return redirect(url_for('index'))
+            
+        return send_file(
+            log_file,
+            as_attachment=True,
+            download_name=f'send_log_{datetime.now().strftime("%Y%m%d_%H%M%S")}.txt',
+            mimetype='text/plain'
+        )
+    except Exception as e:
+        flash(f'Lỗi tải file log: {str(e)}', 'error')
+        return redirect(url_for('index'))
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=5000)

@@ -85,10 +85,38 @@ body {
     margin-bottom: 0.25rem;
     padding: 0.25rem 0;
     border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    color: #ffffff !important; /* Override text-muted */
 }
 
 .log-entry:last-child {
     border-bottom: none;
+}
+
+.log-entry.log-error {
+    background: #2d2323;
+    color: #ffb3b3;
+}
+
+.log-entry.log-success {
+    background: #233223;
+    color: #b3ffb3;
+}
+
+.log-icon {
+    font-size: 1.1em;
+    margin-right: 0.5em;
+    vertical-align: middle;
+}
+
+.log-message {
+    vertical-align: middle;
+    word-break: break-all;
+}
+
+/* Download Button */
+.download-log-btn {
+    margin-top: 1rem;
+    width: 100%;
 }
 
 /* Form Enhancements */

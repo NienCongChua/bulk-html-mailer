@@ -1,3 +1,4 @@
-email,name,product_name,discount_code
-john.doe@example.com,John,Awesome Widget,WELCOME10
-jane.smith@example.com,Jane,Super Gadget,SAVE20
+discount_code,email,name,product_name
+WELCOME10,john.doe@example.com,John,Awesome Widget
+SAVE20,jane.smith@example.com,Jane,Super Gadget
+Ko,admin@nien.edu.vn,Richard Jacob,Ko

@@ -1,13 +1,13 @@
 attachments: []
 email:
   recipients_csv: data/recipients.csv
-  subject: Hello {{name}}, reset your password!
+  subject: Hello !
   template_path: templates/default.html
 sender:
-  email: your_email@gmail.com
+  email: ''
   name: Your Name
 smtp:
-  host: smtp.office365.com
-  password: your_password
+  host: smtp.gmail.com
+  password: ''
   port: 587
-  username: your_email@gmail.com
+  username: ''

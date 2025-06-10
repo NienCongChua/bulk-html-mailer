@@ -94,6 +94,7 @@
 {% endblock %}
 
 {% block extra_scripts %}
+{% raw %}
 <script>
 let currentTemplate = '';
 
@@ -235,4 +236,5 @@ function showAlert(type, message) {
     }, 5000);
 }
 </script>
+{% endraw %}
 {% endblock %}

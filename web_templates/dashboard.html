@@ -176,11 +176,20 @@
                 {% if stats.recent_logs %}
                     <div class="log-container" style="max-height: 200px; overflow-y: auto;">
                         {% for log in stats.recent_logs %}
-                            <div class="log-entry">
-                                <small class="text-muted">{{ log.strip() }}</small>
-                            </div>
+                            {% set icon = log.strip()[:1] %}
+                            {% set message = log.strip()[1:].strip() %}
+                            {% if message %}
+                                <div class="log-entry {% if icon == '❌' %}log-error{% elif icon == '✅' %}log-success{% endif %}">
+                                    <span class="log-icon">{{ icon }}</span>
+                                    <span class="log-message">{{ message }}</span>
+                                </div>
+                            {% endif %}
                         {% endfor %}
                     </div>
+                    <a href="{{ url_for('download_log') }}" class="btn btn-outline-light download-log-btn">
+                        <i class="fas fa-download me-2"></i>
+                        Tải xuống Log
+                    </a>
                 {% else %}
                     <p class="text-muted">Chưa có logs</p>
                 {% endif %}
