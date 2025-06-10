@@ -1,18 +1,57 @@
+# ========================
+# SMTP Configuration
+# ========================
 smtp:
+  # 👉 SMTP server host. Ví dụ:
+  # - Gmail: smtp.gmail.com
+  # - Outlook: smtp.office365.com
+  # - Yahoo: smtp.mail.yahoo.com
+  # - Zoho: smtp.zoho.com
+  # - SendGrid: smtp.sendgrid.net
+  # - Mailgun: smtp.mailgun.org
   host: smtp.gmail.com
-  port: 587
-  username: your_email@gmail.com
-  password: your_app_password
 
+  # 👉 SMTP port:
+  # - 587: TLS (phổ biến nhất, an toàn)
+  # - 465: SSL (ít dùng hơn)
+  # - 25: không mã hóa (thường bị chặn)
+  port: 587
+
+  # 👉 Tên đăng nhập SMTP:
+  # - Gmail, Outlook, Yahoo, Zoho: chính là email
+  # - SendGrid, Mailgun: có thể là 'apikey' hoặc user riêng
+  username: your_email@gmail.com
+
+  # 👉 Mật khẩu:
+  # - Gmail: dùng App Password nếu bật 2FA
+  # - SendGrid: nhập API Key như mật khẩu
+  # - Mailgun: mật khẩu SMTP
+  password: your_app_password_or_api_key
+
+# ========================
+# Sender Info
+# ========================
 sender:
   name: Your Name
-  email: your_email@gmail.com
+  email: your_email@gmail.com  # nên trùng với username ở trên để tránh bị từ chối
 
+# ========================
+# Email Content
+# ========================
 email:
+  # 📝 Tiêu đề email (có thể dùng {{name}}, {{discount_code}}, v.v.)
   subject: "Hello {{name}}, check out our new product!"
+
+  # 📄 Đường dẫn đến file HTML template
   template_path: templates/default.html
+
+  # 📊 CSV chứa danh sách người nhận
   recipients_csv: data/recipients.csv
 
+# ========================
+# Attachments (Optional)
+# ========================
+# 📎 Danh sách file cần đính kèm (có thể để trống nếu không cần)
 attachments:
   - attachments/promo.pdf
   - attachments/banner.jpg
